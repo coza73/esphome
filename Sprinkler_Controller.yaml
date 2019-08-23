@@ -1,0 +1,442 @@
+esphome:
+  name: sprinkler_controller
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ap:
+    ssid: sprinker_controller
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  manual_ip:
+    # Set this to the IP of the ESP
+    static_ip: 192.168.178.100
+    # Set this to the IP address of the router. Often ends with .1
+    gateway: 192.168.178.1
+    # The subnet of the network. 255.255.255.0 works for most home networks.
+    subnet: 255.255.255.0
+    dns1: 192.168.178.1
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+web_server:
+  port: 80
+
+uart:
+  rx_pin: D7
+  tx_pin: D5
+  baud_rate: 9600
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Australia/Melbourne
+
+i2c:
+  sda: 4
+  scl: 5
+  scan: False
+
+pcf8574:
+  - id: 'pcf8574_hub'
+    address: 0x20
+    pcf8575: False
+
+globals:
+   - id: zone_start_time
+     type: int
+     restore_value: no
+     initial_value: '0'
+   - id: zone_run_time
+     type: int
+     restore_value: no
+     initial_value: '0'
+
+
+     
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(zone_start_time) != 0;
+          then:
+            - lambda: |- 
+                id(zone_run_time) = id(sntp_time).now().timestamp - id(zone_start_time);
+            - logger.log: 
+                format: "Zone run time %.1d"
+                args: [ 'id(zone_run_time)' ]
+          else:
+            - lambda: |-
+                id(zone_run_time) = 0;
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay1
+          then:
+            - switch.turn_off: relay1
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay2
+          then:
+            - switch.turn_off: relay2
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay3
+          then:
+            - switch.turn_off: relay3
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay4
+          then:
+            - switch.turn_off: relay4
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay5
+          then:
+            - switch.turn_off: relay5
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay6
+          then:
+            - switch.turn_off: relay6
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay7
+          then:
+            - switch.turn_off: relay7
+      - if:
+          condition:
+            for:
+              time: 30s
+              condition:
+                switch.is_on: relay8
+          then:
+            - switch.turn_off: relay8
+
+display:
+  - platform: nextion
+    id: nextion_display
+    update_interval: 1s
+    lambda: |-
+      char ctime[10]; 
+      char rtime[10];
+      time_t currTime = id(sntp_time).now().timestamp;
+      strftime(ctime, sizeof(ctime), "%I:%M %p", localtime(&currTime));
+      time_t zone_time = id(zone_run_time);
+      strftime(rtime, sizeof(rtime), "%M:%S", localtime(&zone_time));
+      it.set_component_text("time", ctime);
+      it.set_component_text("coutdown", rtime);
+      
+binary_sensor:
+  - platform: nextion
+    page_id: 0
+    component_id: 2
+    nextion_id: nextion_display
+    id: zone1_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone1_button
+        then:
+          - switch.turn_on: relay1
+        else:
+          - switch.turn_off: relay1  
+  - platform: nextion
+    page_id: 0
+    component_id: 4
+    nextion_id: nextion_display
+    id: zone2_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone2_button
+        then:
+          - switch.turn_on: relay2
+        else:
+          - switch.turn_off: relay2 
+  - platform: nextion
+    page_id: 0
+    component_id: 5
+    nextion_id: nextion_display
+    id: zone3_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone3_button
+        then:
+          - switch.turn_on: relay3
+        else:
+          - switch.turn_off: relay3 
+  - platform: nextion
+    page_id: 0
+    component_id: 6
+    nextion_id: nextion_display
+    id: zone4_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone4_button
+        then:
+          - switch.turn_on: relay4
+        else:
+          - switch.turn_off: relay4  
+  - platform: nextion
+    page_id: 0
+    component_id: 7
+    nextion_id: nextion_display
+    id: zone5_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone5_button
+        then:
+          - switch.turn_on: relay5
+        else:
+          - switch.turn_off: relay5  
+  - platform: nextion
+    page_id: 0
+    component_id: 8
+    nextion_id: nextion_display
+    id: zone6_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone6_button
+        then:
+          - switch.turn_on: relay6
+        else:
+          - switch.turn_off: relay6  
+  - platform: nextion
+    page_id: 0
+    component_id: 9
+    nextion_id: nextion_display
+    id: zone7_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone7_button
+        then:
+          - switch.turn_on: relay7
+        else:
+          - switch.turn_off: relay7  
+  - platform: nextion
+    page_id: 0
+    component_id: 10
+    nextion_id: nextion_display
+    id: zone8_button
+    on_state:
+      if:
+        condition:
+          - binary_sensor.is_on: zone8_button
+        then:
+          - switch.turn_on: relay8
+        else:
+          - switch.turn_off: relay8  
+          
+switch:
+  - platform: gpio
+    name: "Zone 1"
+    id: relay1
+    restore_mode: ALWAYS_OFF
+    interlock: [relay2 ,relay3, relay4, relay5, relay6, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 0
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt0", 1);
+          - logger.log: "Send enable to touch button bt0"  
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt0", 0);
+          - logger.log: "Send disable to touch button bt0"
+  - platform: gpio
+    name: "Zone 2"
+    id: relay2
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1 ,relay3, relay4, relay5, relay6, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 1
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt1", 1);
+          - logger.log: "Send enable to touch button bt1"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt1", 0);
+          - logger.log: "Send disable to touch button bt1"
+  - platform: gpio
+    name: "Zone 3"
+    id: relay3
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1 ,relay2, relay4, relay5, relay6, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 2
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt2", 1);
+          - logger.log: "Send enable to touch button bt2"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt2", 0);
+          - logger.log: "Send disable to touch button bt2"
+  - platform: gpio
+    name: "Zone 4"
+    id: relay4
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1 ,relay2, relay3, relay5, relay6, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 3
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt3", 1);
+          - logger.log: "Send enable to touch button bt3"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt3", 0);
+          - logger.log: "Send disable to touch button bt3"
+  - platform: gpio
+    name: "Zone 5"
+    id: relay5
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1 ,relay2, relay3, relay4, relay6, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 4
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt4", 1);
+          - logger.log: "Send enable to touch button bt4"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt4", 0);
+          - logger.log: "Send disable to touch button bt4"
+  - platform: gpio
+    name: "Zone 6"
+    id: relay6
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1, relay2 ,relay3, relay4, relay5, relay7, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 5
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt5", 1);
+          - logger.log: "Send enable to touch button bt5"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt5", 0);
+          - logger.log: "Send disable to touch button bt5"
+  - platform: gpio
+    name: "Zone 7"
+    id: relay7
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1, relay2 ,relay3, relay4, relay5, relay6, relay8]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 6
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt6", 1);
+          - logger.log: "Send enable to touch button bt6"     
+    on_turn_off:
+          - lambda: |-
+              id(nextion_display).set_component_value("bt6", 0);
+          - logger.log: "Send disable to touch button bt6"
+  - platform: gpio
+    name: "Zone 8"
+    id: relay8
+    restore_mode: ALWAYS_OFF
+    interlock: [relay1, relay2 ,relay3, relay4, relay5, relay6, relay7]
+    pin:
+      pcf8574: pcf8574_hub
+      number: 7
+      mode: OUTPUT
+      inverted: True
+    on_turn_on:
+      then:
+          - lambda: |-
+              id(zone_start_time) = id(sntp_time).now().timestamp;
+              id(nextion_display).set_component_value("bt7", 1);
+          - logger.log: "Send enable to touch button bt7"     
+    on_turn_off:
+          - lambda: |-
+              id(zone_start_time) = 0;
+              id(nextion_display).set_component_value("bt7", 0);
+          - logger.log: "Send disable to touch button bt7"
+
+
+
+sensor:
+  - platform: wifi_signal
+    name: sprinkler_controller_wifi
+    update_interval: 60s
+  - platform: uptime
+    name: sprinkler_controller_uptime
+    id: uptime_sensor
