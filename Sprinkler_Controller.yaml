@@ -77,10 +77,11 @@ interval:
           else:
             - lambda: |-
                 id(zone_run_time) = 0;
+# Set maximum on time per zone, dont know how to do a global variable here
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay1
           then:
@@ -88,7 +89,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay2
           then:
@@ -96,7 +97,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay3
           then:
@@ -104,7 +105,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay4
           then:
@@ -112,7 +113,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay5
           then:
@@ -120,7 +121,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay6
           then:
@@ -128,7 +129,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay7
           then:
@@ -136,7 +137,7 @@ interval:
       - if:
           condition:
             for:
-              time: 30s
+              time: 15min
               condition:
                 switch.is_on: relay8
           then:
